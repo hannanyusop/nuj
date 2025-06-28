@@ -83,9 +83,9 @@
                 >
                 <span class="ml-2 text-sm text-white">Remember me</span>
             </label>
-            <a href="{{ route('password.request') }}" class="text-sm text-purple-200 hover:text-white transition-colors">
+            <!-- <a href="{{ route('password.request') }}" class="text-sm text-purple-200 hover:text-white transition-colors">
                 Forgot password?
-            </a>
+            </a> -->
         </div>
 
         <!-- Submit Button -->
@@ -104,31 +104,22 @@
     </form>
 
     <!-- Divider -->
-    <div class="my-6 flex items-center">
+    <!-- <div class="my-6 flex items-center">
         <div class="flex-1 border-t border-gray-300 border-opacity-30"></div>
         <span class="px-4 text-sm text-white">or</span>
         <div class="flex-1 border-t border-gray-300 border-opacity-30"></div>
-    </div>
+    </div> -->
 
-    <!-- Customer Login Link -->
-    <div class="text-center">
-        <p class="text-white text-sm">
-            Are you a customer? 
-            <a href="{{ route('customer.login') }}" class="text-purple-200 hover:text-white font-semibold transition-colors">
-                Login here
-            </a>
-        </p>
-    </div>
 
     <!-- Register Link -->
-    <div class="mt-4 text-center">
+    <!-- <div class="mt-4 text-center">
         <p class="text-white text-sm">
             Don't have an account? 
             <a href="{{ route('register') }}" class="text-purple-200 hover:text-white font-semibold transition-colors">
                 Register here
             </a>
         </p>
-    </div>
+    </div> -->
 @endsection
 
 @push('scripts')

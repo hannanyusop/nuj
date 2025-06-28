@@ -1,35 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password - Parcel Management System</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .input-focus:focus {
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-    </style>
-</head>
-<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
+@extends('layouts.auth')
+
+@section('title', 'Reset Password - Parcel Management System')
+
+@section('header', 'Reset Password')
+
+@section('subheader', 'Enter your new password')
+
+@section('content')
+<div class="min-h-screen gradient-bg flex items-center justify-center p-4" x-data="{ loading: false }">
     <div class="w-full max-w-md">
         <!-- Logo and Title -->
         <div class="text-center mb-8">
@@ -43,7 +21,7 @@
         <!-- Reset Password Card -->
         <div class="glass-effect rounded-2xl p-8 shadow-2xl">
             <!-- Reset Password Form -->
-            <form method="POST" action="{{ route('password.update') }}" x-data="{ loading: false }">
+            <form method="POST" action="{{ route('password.update') }}" @submit="loading = true">
                 @csrf
                 
                 <!-- Token -->
@@ -64,6 +42,7 @@
                             placeholder="Enter your email address"
                             required
                             autocomplete="email"
+                            :disabled="loading"
                         >
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <i class="fas fa-envelope text-gray-400"></i>
@@ -88,6 +67,7 @@
                             placeholder="Enter your new password"
                             required
                             autocomplete="new-password"
+                            :disabled="loading"
                         >
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <i class="fas fa-lock text-gray-400"></i>
@@ -112,6 +92,7 @@
                             placeholder="Confirm your new password"
                             required
                             autocomplete="new-password"
+                            :disabled="loading"
                         >
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <i class="fas fa-lock text-gray-400"></i>
@@ -122,9 +103,8 @@
                 <!-- Submit Button -->
                 <button 
                     type="submit" 
-                    class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                    class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="loading"
-                    @click="loading = true"
                 >
                     <span x-show="!loading">
                         <i class="fas fa-key mr-2"></i>Reset Password
@@ -168,31 +148,29 @@
             <span>Resetting password...</span>
         </div>
     </div>
+</div>
+@endsection
 
-    <script>
-        // Password strength indicator
-        document.getElementById('password').addEventListener('input', function() {
-            const password = this.value;
-            const confirmPassword = document.getElementById('password_confirmation').value;
+@push('scripts')
+<script>
+    // Password validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('password_confirmation');
+
+        function validatePasswords() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
             
-            // Check if passwords match
             if (confirmPassword && password !== confirmPassword) {
-                document.getElementById('password_confirmation').setCustomValidity('Passwords do not match');
+                confirmPasswordInput.setCustomValidity('Passwords do not match');
             } else {
-                document.getElementById('password_confirmation').setCustomValidity('');
+                confirmPasswordInput.setCustomValidity('');
             }
-        });
+        }
 
-        document.getElementById('password_confirmation').addEventListener('input', function() {
-            const password = document.getElementById('password').value;
-            const confirmPassword = this.value;
-            
-            if (password !== confirmPassword) {
-                this.setCustomValidity('Passwords do not match');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
-    </script>
-</body>
-</html> 
+        passwordInput.addEventListener('input', validatePasswords);
+        confirmPasswordInput.addEventListener('input', validatePasswords);
+    });
+</script>
+@endpush 

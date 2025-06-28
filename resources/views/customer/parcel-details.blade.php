@@ -106,8 +106,8 @@
                         $statuses = [
                             0 => ['name' => 'Parcel Registered', 'description' => 'Your parcel has been registered and is awaiting processing', 'icon' => 'fas fa-clipboard-list', 'color' => 'text-yellow-600'],
                             1 => ['name' => 'In Transit', 'description' => 'Your parcel is being transported to the destination', 'icon' => 'fas fa-truck', 'color' => 'text-blue-600'],
+                            3 => ['name' => 'Ready for Collection', 'description' => 'Your parcel is ready for collection at the drop point', 'icon' => 'fas fa-hand-holding', 'color' => 'text-purple-600'],
                             2 => ['name' => 'Delivered', 'description' => 'Your parcel has been successfully delivered', 'icon' => 'fas fa-check-circle', 'color' => 'text-green-600'],
-                            3 => ['name' => 'Ready for Collection', 'description' => 'Your parcel is ready for collection at the drop point', 'icon' => 'fas fa-hand-holding', 'color' => 'text-purple-600']
                         ];
                     @endphp
 

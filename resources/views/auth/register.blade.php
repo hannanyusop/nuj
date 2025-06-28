@@ -1,49 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Parcel Management System</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .input-focus:focus {
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-    </style>
-</head>
-<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
-    <div class="w-full max-w-md">
-        <!-- Logo and Title -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg mb-4">
-                <i class="fas fa-box text-3xl text-purple-600"></i>
-            </div>
-            <h1 class="text-3xl font-bold text-white mb-2">Create Account</h1>
-            <p class="text-purple-100">Join our parcel management system</p>
-        </div>
+@extends('layouts.auth')
+@section('title', 'Register - Parcel Management System')
+@section('header', 'Create Account')
+@section('subheader', 'Join our parcel management system')
 
-        <!-- Registration Card -->
-        <div class="glass-effect rounded-2xl p-8 shadow-2xl">
-            <!-- Registration Form -->
-            <form method="POST" action="{{ route('register') }}" x-data="{ loading: false }">
+@section('content')
+<form method="POST" action="{{ route('register') }}" @submit="loading = true">
                 @csrf
                 
                 <!-- Name Field -->
@@ -61,6 +22,7 @@
                             placeholder="Enter your full name"
                             required
                             autocomplete="name"
+                            :disabled="loading"
                         >
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <i class="fas fa-user text-gray-400"></i>
@@ -86,6 +48,7 @@
                             placeholder="Enter your email"
                             required
                             autocomplete="email"
+                            :disabled="loading"
                         >
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <i class="fas fa-envelope text-gray-400"></i>
@@ -110,6 +73,7 @@
                             class="w-full px-4 py-3 bg-white bg-opacity-90 border border-gray-300 rounded-lg input-focus focus:outline-none focus:border-purple-500 transition-colors"
                             placeholder="Enter your phone number"
                             autocomplete="tel"
+                            :disabled="loading"
                         >
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <i class="fas fa-phone text-gray-400"></i>
@@ -133,6 +97,7 @@
                             class="w-full px-4 py-3 bg-white bg-opacity-90 border border-gray-300 rounded-lg input-focus focus:outline-none focus:border-purple-500 transition-colors resize-none"
                             placeholder="Enter your address"
                             autocomplete="street-address"
+                            :disabled="loading"
                         >{{ old('address') }}</textarea>
                         <div class="absolute top-3 right-3">
                             <i class="fas fa-map-marker-alt text-gray-400"></i>
@@ -157,6 +122,7 @@
                             placeholder="Create a password (min 8 characters)"
                             required
                             autocomplete="new-password"
+                            :disabled="loading"
                         >
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <i class="fas fa-lock text-gray-400"></i>
@@ -181,6 +147,7 @@
                             placeholder="Confirm your password"
                             required
                             autocomplete="new-password"
+                            :disabled="loading"
                         >
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <i class="fas fa-lock text-gray-400"></i>
@@ -196,6 +163,7 @@
                             name="terms" 
                             class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 mt-1"
                             required
+                            :disabled="loading"
                         >
                         <span class="ml-2 text-sm text-white">
                             I agree to the 
@@ -212,9 +180,8 @@
                 <!-- Submit Button -->
                 <button 
                     type="submit" 
-                    class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                    class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="loading"
-                    @click="loading = true"
                 >
                     <span x-show="!loading">
                         <i class="fas fa-user-plus mr-2"></i>Create Account
@@ -241,29 +208,29 @@
                     </a>
                 </p>
             </div>
-        </div>
+@endsection
 
-        <!-- Footer -->
-        <div class="text-center mt-8">
-            <p class="text-purple-100 text-sm">
-                &copy; {{ date('Y') }} Parcel Management System. All rights reserved.
-            </p>
-        </div>
-    </div>
+@push('scripts')
+<script>
+    // Password validation and strength indicator
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('password_confirmation');
 
-    <!-- Loading Overlay -->
-    <div x-show="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 flex items-center">
-            <i class="fas fa-spinner fa-spin text-purple-600 mr-3"></i>
-            <span>Creating your account...</span>
-        </div>
-    </div>
+        function validatePasswords() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            
+            if (confirmPassword && password !== confirmPassword) {
+                confirmPasswordInput.setCustomValidity('Passwords do not match');
+            } else {
+                confirmPasswordInput.setCustomValidity('');
+            }
+        }
 
-    <script>
-        // Password strength indicator
-        document.getElementById('password').addEventListener('input', function() {
-            const password = this.value;
-            const strength = 0;
+        function checkPasswordStrength() {
+            const password = passwordInput.value;
+            let strength = 0;
             
             if (password.length >= 8) strength++;
             if (/[a-z]/.test(password)) strength++;
@@ -272,7 +239,15 @@
             if (/[^A-Za-z0-9]/.test(password)) strength++;
             
             // You can add visual feedback here if needed
+            // For example, update a strength indicator element
+        }
+
+        passwordInput.addEventListener('input', function() {
+            validatePasswords();
+            checkPasswordStrength();
         });
-    </script>
-</body>
-</html> 
+
+        confirmPasswordInput.addEventListener('input', validatePasswords);
+    });
+</script>
+@endpush

@@ -12,21 +12,7 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
     <!-- Scripts and Styles -->
-    @vite(['resources/css/app.css', 'resources/css/fontawesome.css', 'resources/js/app.js'])
-    
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .input-focus:focus {
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-    </style>
+    @vite(['resources/css/app.css', 'resources/css/custom.css', 'resources/css/fontawesome.css', 'resources/js/app.js'])
     
     @stack('styles')
 </head>
@@ -49,7 +35,7 @@
         <!-- Footer -->
         <div class="text-center mt-8">
             <p class="text-purple-100 text-sm">
-                &copy; {{ date('Y') }} Parcel Management System. All rights reserved.
+                &copy; {{ date('Y') }} NUJ Courier Management System. All rights reserved.
             </p>
         </div>
     </div>
