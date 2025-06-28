@@ -219,4 +219,41 @@ class AuthenticationService
             'active_users' => User::active()->count(),
         ];
     }
+
+    /**
+     * Send password reset link to user.
+     */
+    public function sendPasswordResetLink(string $email): void
+    {
+        $status = \Illuminate\Support\Facades\Password::sendResetLink(['email' => $email]);
+
+        if ($status !== \Illuminate\Support\Facades\Password::RESET_LINK_SENT) {
+            throw new \Exception(__($status));
+        }
+    }
+
+    /**
+     * Reset user password.
+     */
+    public function resetPassword(string $email, string $password, string $token): void
+    {
+        $status = \Illuminate\Support\Facades\Password::reset(
+            [
+                'email' => $email,
+                'password' => $password,
+                'password_confirmation' => $password,
+                'token' => $token,
+            ],
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => \Illuminate\Support\Facades\Hash::make($password),
+                    'password_changed_at' => now(),
+                ])->save();
+            }
+        );
+
+        if ($status !== \Illuminate\Support\Facades\Password::PASSWORD_RESET) {
+            throw new \Exception(__($status));
+        }
+    }
 } 

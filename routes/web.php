@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ParcelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +17,23 @@ use App\Http\Controllers\AuthController;
 */
 
 // Debug route for testing debugbar
+
+// Default route - show landing page for guests, redirect to dashboard for authenticated users
+Route::get('/', function () {
+    if (\Illuminate\Support\Facades\Auth::check()) {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        
+        return match($user->type) {
+            'admin' => redirect()->route('admin.dashboard'),
+            'manager', 'staff' => redirect()->route('staff.dashboard'),
+            'runner' => redirect()->route('runner.dashboard'),
+            'user' => redirect()->route('customer.dashboard'),
+            default => redirect()->route('customer.dashboard'),
+        };
+    }
+    
+    return view('welcome');
+})->name('home');
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -46,21 +65,14 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth'])->group(function () {
     // Customer routes
     Route::middleware(['auth.customer'])->prefix('customer')->name('customer.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('customer.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', [CustomerController::class, 'dashboard'])->name('dashboard');
+        Route::get('/parcels', [CustomerController::class, 'parcels'])->name('parcels');
+        Route::get('/profile', [CustomerController::class, 'profile'])->name('profile');
         
-        Route::get('/parcels', function () {
-            return view('customer.parcels');
-        })->name('parcels');
-        
-        Route::get('/parcels/add', [App\Http\Controllers\ParcelController::class, 'create'])->name('parcels.add');
-        
-        Route::post('/parcels/add', [App\Http\Controllers\ParcelController::class, 'store'])->name('parcels.store');
-        
-        Route::get('/profile', function () {
-            return view('customer.profile');
-        })->name('profile');
+        // Parcel routes
+        Route::get('/parcels/add', [CustomerController::class, 'addParcel'])->name('parcels.add');
+        Route::post('/parcels/add', [ParcelController::class, 'store'])->name('parcels.store');
+        Route::get('/parcels/{id}', [CustomerController::class, 'showParcel'])->name('parcels.show');
     });
     
     // Staff routes
@@ -84,23 +96,6 @@ Route::middleware(['auth'])->group(function () {
         })->name('dashboard');
     });
 });
-
-// Default route - redirect to appropriate dashboard
-Route::get('/', function () {
-    if (\Illuminate\Support\Facades\Auth::check()) {
-        $user = \Illuminate\Support\Facades\Auth::user();
-        
-        return match($user->type) {
-            'admin' => redirect()->route('admin.dashboard'),
-            'manager', 'staff' => redirect()->route('staff.dashboard'),
-            'runner' => redirect()->route('runner.dashboard'),
-            'user' => redirect()->route('customer.dashboard'),
-            default => redirect()->route('customer.dashboard'),
-        };
-    }
-    
-    return redirect()->route('login');
-})->name('home');
 
 // Fallback route
 Route::fallback(function () {

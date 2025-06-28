@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Services\AuthenticationService;
 use App\Services\UserService;
 use Illuminate\Http\Request;
@@ -31,15 +33,9 @@ class AuthController extends Controller
     /**
      * Handle login request.
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
         try {
-            $request->validate([
-                'email' => 'required|email',
-                'password' => 'required|string',
-                'remember' => 'boolean',
-            ]);
-
             $user = $this->authService->login(
                 $request->email,
                 $request->password,
@@ -96,15 +92,9 @@ class AuthController extends Controller
     /**
      * Handle customer login request.
      */
-    public function customerLogin(Request $request)
+    public function customerLogin(LoginRequest $request)
     {
         try {
-            $request->validate([
-                'email' => 'required|email',
-                'password' => 'required|string',
-                'remember' => 'boolean',
-            ]);
-
             $user = $this->authService->login(
                 $request->email,
                 $request->password,
@@ -152,18 +142,9 @@ class AuthController extends Controller
     /**
      * Handle registration request.
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
         try {
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'phone_number' => 'nullable|string|max:20',
-                'address' => 'nullable|string|max:500',
-                'password' => 'required|string|min:8|confirmed',
-                'terms' => 'required|accepted',
-            ]);
-
             $userData = [
                 'name' => $request->name,
                 'email' => $request->email,
@@ -181,10 +162,6 @@ class AuthController extends Controller
             return redirect()->route('customer.dashboard')
                 ->with('success', 'Account created successfully! Welcome to our platform.');
 
-        } catch (ValidationException $e) {
-            return back()
-                ->withInput($request->except('password', 'password_confirmation'))
-                ->withErrors($e->errors());
         } catch (\Exception $e) {
             Log::error('Registration error', [
                 'error' => $e->getMessage(),
@@ -206,21 +183,26 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle password reset request.
+     * Send password reset link.
      */
     public function sendPasswordResetLink(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|email|exists:users,email',
         ]);
 
-        $status = \Illuminate\Support\Facades\Password::sendResetLink(
-            $request->only('email')
-        );
+        try {
+            $this->authService->sendPasswordResetLink($request->email);
 
-        return $status === \Illuminate\Support\Facades\Password::RESET_LINK_SENT
-            ? back()->with(['status' => __($status)])
-            : back()->withErrors(['email' => __($status)]);
+            return back()->with('success', 'Password reset link has been sent to your email.');
+        } catch (\Exception $e) {
+            Log::error('Password reset link error', [
+                'error' => $e->getMessage(),
+                'email' => $request->email
+            ]);
+
+            return back()->withErrors(['email' => 'Unable to send password reset link.']);
+        }
     }
 
     /**
@@ -232,29 +214,35 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle password reset.
+     * Reset password.
      */
     public function resetPassword(Request $request)
     {
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $status = \Illuminate\Support\Facades\Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => \Illuminate\Support\Facades\Hash::make($password),
-                    'password_changed_at' => now(),
-                ])->save();
-            }
-        );
+        try {
+            $this->authService->resetPassword(
+                $request->email,
+                $request->password,
+                $request->token
+            );
 
-        return $status === \Illuminate\Support\Facades\Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('status', __($status))
-            : back()->withErrors(['email' => [__($status)]]);
+            return redirect()->route('login')
+                ->with('success', 'Password has been reset successfully. You can now login with your new password.');
+        } catch (\Exception $e) {
+            Log::error('Password reset error', [
+                'error' => $e->getMessage(),
+                'email' => $request->email
+            ]);
+
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors(['email' => 'Password reset failed. Please try again.']);
+        }
     }
 
     /**
@@ -262,11 +250,7 @@ class AuthController extends Controller
      */
     private function redirectBasedOnUserType($user = null): \Illuminate\Http\RedirectResponse
     {
-        $user = $user ?? $this->authService->getCurrentUser();
-
-        if (!$user) {
-            return redirect()->route('login');
-        }
+        $user = $user ?? auth()->user();
 
         return match($user->type) {
             'admin' => redirect()->route('admin.dashboard'),
