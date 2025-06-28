@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Customer Dashboard - Parcel Management System')
+@section('title', 'Customer Dashboard - NUJ Courier Management System')
+
+@php
+    use App\Services\ParcelService;
+@endphp
 
 @section('content')
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -30,7 +34,7 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <!-- Total Parcels -->
         <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
@@ -63,6 +67,25 @@
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Pending</dt>
                             <dd class="text-lg font-medium text-gray-900">{{ $stats['pending'] }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- In Transit -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="h-8 w-8 bg-indigo-600 rounded-md flex items-center justify-center">
+                            <i class="fas fa-truck text-white"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">In Transit</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $stats['in_transit'] }}</dd>
                         </dl>
                     </div>
                 </div>
@@ -162,23 +185,11 @@
                                         {{ $parcel->receiver_name }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @php
-                                            $statusColors = [
-                                                0 => 'bg-yellow-100 text-yellow-800',
-                                                1 => 'bg-blue-100 text-blue-800',
-                                                2 => 'bg-green-100 text-green-800',
-                                                3 => 'bg-purple-100 text-purple-800'
-                                            ];
-                                            $statusText = [
-                                                0 => 'Pending',
-                                                1 => 'In Transit',
-                                                2 => 'Delivered',
-                                                3 => 'Ready to Collect'
-                                            ];
-                                        @endphp
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$parcel->status] }}">
-                                            {{ $statusText[$parcel->status] }}
-                                        </span>
+                                        {!! $parcel->getStatusBadgeWithAttributes([
+                                            'id' => 'status-' . $parcel->id,
+                                            'onclick' => 'showStatusDetails(' . $parcel->id . ')',
+                                            'style' => 'cursor: pointer;'
+                                        ]) !!}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $parcel->created_at->format('M d, Y') }}
@@ -200,4 +211,37 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    // Function to show status details when badge is clicked
+    function showStatusDetails(parcelId) {
+        // You can implement modal or tooltip here
+        console.log('Showing details for parcel:', parcelId);
+        
+        // Example: Show a simple alert with status info
+        const statusElement = document.getElementById('status-' + parcelId);
+        const statusText = statusElement.getAttribute('data-status-text');
+        const statusValue = statusElement.getAttribute('data-status');
+        
+        alert(`Parcel Status Details:\nStatus: ${statusText}\nStatus Code: ${statusValue}\nParcel ID: ${parcelId}`);
+    }
+
+    // Example of how to use the status badge attributes
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add hover effects to status badges
+        const statusBadges = document.querySelectorAll('[data-status]');
+        statusBadges.forEach(badge => {
+            badge.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.05)';
+                this.style.transition = 'transform 0.2s ease';
+            });
+            
+            badge.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    });
+</script>
+@endpush
 @endsection 

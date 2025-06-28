@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ParcelService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,16 +10,20 @@ class Parcel extends Model
 {
     use HasFactory;
 
-    /**
-     * Parcel statuses
-     */
-    const STATUS_PENDING = 0;
+    // Status constants (matching ParcelService)
     const STATUS_REGISTERED = 1;
-    const STATUS_IN_TRANSIT = 2;
-    const STATUS_READY_TO_COLLECT = 3;
-    const STATUS_COLLECTED = 4;
-    const STATUS_DELIVERED = 5;
-    const STATUS_CANCELLED = 6;
+    const STATUS_RECEIVED = 2;
+    const STATUS_OUTBOUND_TO_DROP_POINT = 3;
+    const STATUS_INBOUND_TO_DROP_POINT = 4;
+    const STATUS_READY_TO_COLLECT = 5;
+    const STATUS_DELIVERED = 6;
+    const STATUS_RETURN = 7;
+
+    // Legacy status constants (for backward compatibility)
+    const STATUS_PENDING = 0;
+    const STATUS_IN_TRANSIT = 1;
+    const STATUS_COLLECTED = 2;
+    const STATUS_CANCELLED = 8;
 
     /**
      * The attributes that are mass assignable.
@@ -60,6 +65,18 @@ class Parcel extends Model
         'price' => 'integer',
         'tax' => 'integer',
         'status' => 'integer',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'status_badge',
+        'status_badge_with_icon',
+        'status_text',
+        'total_price'
     ];
 
     /**
@@ -171,16 +188,39 @@ class Parcel extends Model
      */
     public function getStatusTextAttribute(): string
     {
-        return match($this->status) {
-            self::STATUS_PENDING => 'Pending',
-            self::STATUS_REGISTERED => 'Registered',
-            self::STATUS_IN_TRANSIT => 'In Transit',
-            self::STATUS_READY_TO_COLLECT => 'Ready to Collect',
-            self::STATUS_COLLECTED => 'Collected',
-            self::STATUS_DELIVERED => 'Delivered',
-            self::STATUS_CANCELLED => 'Cancelled',
-            default => 'Unknown',
-        };
+        return ParcelService::statuses($this->status);
+    }
+
+    /**
+     * Get status badge HTML.
+     */
+    public function getStatusBadgeAttribute(): string
+    {
+        return ParcelService::getStatusBadge($this->status);
+    }
+
+    /**
+     * Get status badge with icon HTML.
+     */
+    public function getStatusBadgeWithIconAttribute(): string
+    {
+        return ParcelService::getStatusBadgeWithIcon($this->status);
+    }
+
+    /**
+     * Get status badge with custom attributes.
+     */
+    public function getStatusBadgeWithAttributes(array $attributes = []): string
+    {
+        return ParcelService::getStatusBadge($this->status, $attributes);
+    }
+
+    /**
+     * Get status badge with icon and custom attributes.
+     */
+    public function getStatusBadgeWithIconAndAttributes(array $attributes = []): string
+    {
+        return ParcelService::getStatusBadgeWithIcon($this->status, $attributes);
     }
 
     /**
