@@ -1,0 +1,349 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Rules - Laravel Development Standards
+
+## 🍎 Apple Senior Developer Standards
+
+### Code Quality & Architecture
+- **Simplicity First**: Write code that is simple, clear, and easy to understand
+- **Single Responsibility**: Each class, method, and function should have one clear purpose
+- **Composition over Inheritance**: Prefer composition and dependency injection
+- **Fail Fast**: Validate inputs early and fail with clear error messages
+- **Defensive Programming**: Always handle edge cases and potential failures gracefully
+
+### Performance & Efficiency
+- **Lazy Loading**: Only load what you need, when you need it
+- **Memory Management**: Be mindful of memory usage, especially with large datasets
+- **Caching Strategy**: Implement appropriate caching at multiple levels
+- **Database Optimization**: Use efficient queries, proper indexing, and avoid N+1 problems
+- **Resource Cleanup**: Always clean up resources and close connections
+
+### Security First
+- **Input Validation**: Validate and sanitize all user inputs
+- **Authentication & Authorization**: Implement proper access controls
+- **Data Encryption**: Encrypt sensitive data at rest and in transit
+- **SQL Injection Prevention**: Use parameterized queries and ORM properly
+- **XSS Protection**: Escape output and use CSRF protection
+
+## 🚀 Laravel Best Practices
+
+### Project Structure
+```
+app/
+├── Http/
+│   ├── Controllers/     # Keep controllers thin
+│   ├── Middleware/      # Custom middleware
+│   ├── Requests/        # Form request validation
+│   └── Resources/       # API resources
+├── Models/              # Eloquent models
+├── Services/            # Business logic
+├── Repositories/        # Data access layer
+├── Events/              # Event classes
+├── Listeners/           # Event listeners
+├── Jobs/                # Queue jobs
+├── Notifications/       # Notification classes
+└── Providers/           # Service providers
+```
+
+### Coding Standards
+
+#### Controllers
+- Keep controllers thin - delegate business logic to services
+- Use Form Request classes for validation
+- Return consistent response formats
+- Use resource collections for API responses
+- Implement proper error handling
+
+```php
+// Good Controller Example
+class UserController extends Controller
+{
+    public function __construct(
+        private UserService $userService,
+        private UserRepository $userRepository
+    ) {}
+
+    public function store(CreateUserRequest $request)
+    {
+        try {
+            $user = $this->userService->createUser($request->validated());
+            return UserResource::make($user)->response()->setStatusCode(201);
+        } catch (UserCreationException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+    }
+}
+```
+
+#### Models
+- Use proper relationships and eager loading
+- Implement accessors and mutators when needed
+- Use model events sparingly
+- Define proper fillable/guarded properties
+- Use model factories for testing
+
+```php
+// Good Model Example
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable;
+
+    protected $fillable = [
+        'name', 'email', 'password',
+    ];
+
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    // Relationships
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    // Accessors
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+}
+```
+
+#### Services
+- Encapsulate business logic
+- Use dependency injection
+- Handle exceptions appropriately
+- Return meaningful results
+- Keep methods focused and testable
+
+```php
+// Good Service Example
+class UserService
+{
+    public function __construct(
+        private UserRepository $userRepository,
+        private HashManager $hashManager,
+        private EventDispatcher $events
+    ) {}
+
+    public function createUser(array $data): User
+    {
+        DB::beginTransaction();
+        
+        try {
+            $data['password'] = $this->hashManager->make($data['password']);
+            $user = $this->userRepository->create($data);
+            
+            $this->events->dispatch(new UserCreated($user));
+            
+            DB::commit();
+            return $user;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw new UserCreationException('Failed to create user: ' . $e->getMessage());
+        }
+    }
+}
+```
+
+### Database & Migrations
+- Use meaningful migration names
+- Always include rollback methods
+- Use proper data types and constraints
+- Add indexes for performance
+- Use foreign key constraints
+
+```php
+// Good Migration Example
+public function up(): void
+{
+    Schema::create('users', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->string('email')->unique();
+        $table->timestamp('email_verified_at')->nullable();
+        $table->string('password');
+        $table->boolean('is_active')->default(true);
+        $table->rememberToken();
+        $table->timestamps();
+        
+        $table->index(['email', 'is_active']);
+    });
+}
+```
+
+### API Development
+- Use consistent response formats
+- Implement proper HTTP status codes
+- Use API resources for data transformation
+- Implement rate limiting
+- Add comprehensive API documentation
+
+```php
+// Good API Resource Example
+class UserResource extends JsonResource
+{
+    public function toArray($request): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'created_at' => $this->created_at->toISOString(),
+            'updated_at' => $this->updated_at->toISOString(),
+        ];
+    }
+}
+```
+
+### Testing
+- Write unit tests for all business logic
+- Use factories for test data
+- Test edge cases and error conditions
+- Use feature tests for API endpoints
+- Maintain high test coverage (>80%)
+
+```php
+// Good Test Example
+class UserServiceTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_can_create_user_with_valid_data(): void
+    {
+        $userData = User::factory()->make()->toArray();
+        
+        $user = app(UserService::class)->createUser($userData);
+        
+        $this->assertInstanceOf(User::class, $user);
+        $this->assertEquals($userData['name'], $user->name);
+        $this->assertEquals($userData['email'], $user->email);
+    }
+}
+```
+
+### Security Practices
+- Use Laravel's built-in security features
+- Implement proper authentication and authorization
+- Use HTTPS in production
+- Validate all inputs
+- Use prepared statements (Eloquent handles this)
+- Implement rate limiting
+- Use environment variables for sensitive data
+
+### Performance Optimization
+- Use eager loading to avoid N+1 queries
+- Implement caching strategies
+- Use database indexes appropriately
+- Optimize database queries
+- Use queue jobs for heavy operations
+- Implement pagination for large datasets
+
+### Error Handling
+- Use custom exception classes
+- Implement proper logging
+- Return meaningful error messages
+- Handle exceptions at appropriate levels
+- Use try-catch blocks judiciously
+
+### Code Organization
+- Follow PSR-12 coding standards
+- Use meaningful variable and function names
+- Keep functions and methods small (<20 lines)
+- Use proper comments for complex logic
+- Group related functionality together
+
+### Version Control
+- Write meaningful commit messages
+- Use feature branches for development
+- Keep commits atomic and focused
+- Review code before merging
+- Use conventional commit format
+
+### Documentation
+- Document complex business logic
+- Keep README files updated
+- Document API endpoints
+- Use PHPDoc for classes and methods
+- Maintain changelog
+
+### Deployment & DevOps
+- Use environment-specific configurations
+- Implement proper logging
+- Use health checks
+- Monitor application performance
+- Implement backup strategies
+
+## 🎯 Quality Gates
+
+### Before Committing
+- [ ] Code follows PSR-12 standards
+- [ ] All tests pass
+- [ ] No debugging code left
+- [ ] Proper error handling implemented
+- [ ] Security considerations addressed
+- [ ] Performance impact considered
+
+### Before Merging
+- [ ] Code review completed
+- [ ] All CI/CD checks pass
+- [ ] Documentation updated
+- [ ] Migration files reviewed
+- [ ] API changes documented
+- [ ] Security review completed
+
+## 📚 Recommended Tools & Packages
+
+### Development
+- Laravel IDE Helper
+- Laravel Debugbar
+- Laravel Telescope
+- PHP CS Fixer
+- PHPStan
+- Laravel Pint
+
+### Testing
+- Pest PHP
+- Laravel Dusk
+- Faker
+- Mockery
+
+### Performance
+- Laravel Horizon
+- Redis
+- Laravel Octane
+- Laravel Scout
+
+### Security
+- Laravel Sanctum
+- Laravel Fortify
+- Laravel Breeze
+- Laravel Jetstream
+
+## 🔄 Continuous Improvement
+
+- Regular code reviews
+- Performance monitoring
+- Security audits
+- Dependency updates
+- Documentation maintenance
+- Team knowledge sharing
+
+---
+
+*Remember: Good code is not just about functionality, but about maintainability, readability, and scalability.*
