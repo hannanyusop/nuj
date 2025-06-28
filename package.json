@@ -4,7 +4,10 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "build:prod": "vite build --config vite.config.prod.js",
+        "dev": "vite",
+        "deploy": "./deploy.sh",
+        "preview": "vite preview"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
