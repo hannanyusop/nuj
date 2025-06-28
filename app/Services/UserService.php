@@ -35,9 +35,6 @@ class UserService
             
             $user = User::create($data);
             
-            // Assign default role based on type
-            $this->assignDefaultRole($user);
-            
             DB::commit();
             
             Log::info('User created successfully', ['user_id' => $user->id, 'email' => $user->email]);
@@ -280,18 +277,5 @@ class UserService
         if ($validator->fails()) {
             throw ValidationException::withMessages($validator->errors()->toArray());
         }
-    }
-
-    /**
-     * Assign default role based on user type.
-     */
-    private function assignDefaultRole(User $user): void
-    {
-        // This will be implemented when roles and permissions are set up
-        // For now, we'll just log the assignment
-        Log::info('Default role assignment needed', [
-            'user_id' => $user->id,
-            'type' => $user->type
-        ]);
     }
 } 

@@ -14,6 +14,8 @@ use App\Http\Controllers\AuthController;
 |
 */
 
+// Debug route for testing debugbar
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     // Main login routes
@@ -81,8 +83,8 @@ Route::middleware(['auth'])->group(function () {
 
 // Default route - redirect to appropriate dashboard
 Route::get('/', function () {
-    if (auth()->check()) {
-        $user = auth()->user();
+    if (\Illuminate\Support\Facades\Auth::check()) {
+        $user = \Illuminate\Support\Facades\Auth::user();
         
         return match($user->type) {
             'admin' => redirect()->route('admin.dashboard'),

@@ -11,7 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Register custom authentication middleware
+        $middleware->alias([
+            'auth.customer' => \App\Http\Middleware\EnsureUserIsCustomer::class,
+            'auth.admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'auth.staff' => \App\Http\Middleware\EnsureUserIsStaff::class,
+            'auth.runner' => \App\Http\Middleware\EnsureUserIsRunner::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
