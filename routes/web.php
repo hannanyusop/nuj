@@ -54,6 +54,10 @@ Route::middleware(['auth'])->group(function () {
             return view('customer.parcels');
         })->name('parcels');
         
+        Route::get('/parcels/add', [App\Http\Controllers\ParcelController::class, 'create'])->name('parcels.add');
+        
+        Route::post('/parcels/add', [App\Http\Controllers\ParcelController::class, 'store'])->name('parcels.store');
+        
         Route::get('/profile', function () {
             return view('customer.profile');
         })->name('profile');

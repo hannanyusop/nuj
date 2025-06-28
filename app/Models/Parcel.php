@@ -44,6 +44,9 @@ class Parcel extends Model
         'price',
         'tax',
         'invoice_url',
+        'invoice_path',
+        'collection_point',
+        'created_by',
     ];
 
     /**

@@ -147,7 +147,19 @@
         <div class="bg-white shadow rounded-lg mb-6">
             <div class="px-4 py-5 sm:p-6">
                 <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <a href="{{ route('customer.parcels.add') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div class="flex-shrink-0">
+                            <div class="h-10 w-10 bg-green-600 rounded-md flex items-center justify-center">
+                                <i class="fas fa-plus text-white"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-medium text-gray-900">Add Parcel</h4>
+                            <p class="text-sm text-gray-500">Register a new parcel for tracking</p>
+                        </div>
+                    </a>
+                    
                     <a href="{{ route('customer.parcels') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                         <div class="flex-shrink-0">
                             <div class="h-10 w-10 bg-purple-600 rounded-md flex items-center justify-center">
