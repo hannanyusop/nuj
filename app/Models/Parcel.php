@@ -76,6 +76,9 @@ class Parcel extends Model
         'status_badge',
         'status_badge_with_icon',
         'status_text',
+        'status_label',
+        'status_color',
+        'status_icon',
         'total_price'
     ];
 
@@ -192,11 +195,65 @@ class Parcel extends Model
     }
 
     /**
+     * Get status label (short version).
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        $labels = [
+            self::STATUS_REGISTERED => 'Registered',
+            self::STATUS_RECEIVED => 'Received',
+            self::STATUS_OUTBOUND_TO_DROP_POINT => 'Outbound',
+            self::STATUS_INBOUND_TO_DROP_POINT => 'Inbound',
+            self::STATUS_READY_TO_COLLECT => 'Ready to Collect',
+            self::STATUS_DELIVERED => 'Delivered',
+            self::STATUS_RETURN => 'Returned'
+        ];
+
+        return $labels[$this->status] ?? 'Unknown';
+    }
+
+    /**
+     * Get status color classes.
+     */
+    public function getStatusColorAttribute(): string
+    {
+        $colors = [
+            self::STATUS_REGISTERED => 'bg-yellow-100 text-yellow-800',
+            self::STATUS_RECEIVED => 'bg-blue-100 text-blue-800',
+            self::STATUS_OUTBOUND_TO_DROP_POINT => 'bg-indigo-100 text-indigo-800',
+            self::STATUS_INBOUND_TO_DROP_POINT => 'bg-purple-100 text-purple-800',
+            self::STATUS_READY_TO_COLLECT => 'bg-green-100 text-green-800',
+            self::STATUS_DELIVERED => 'bg-emerald-100 text-emerald-800',
+            self::STATUS_RETURN => 'bg-red-100 text-red-800'
+        ];
+
+        return $colors[$this->status] ?? 'bg-gray-100 text-gray-800';
+    }
+
+    /**
+     * Get status icon class.
+     */
+    public function getStatusIconAttribute(): string
+    {
+        $icons = [
+            self::STATUS_REGISTERED => 'fas fa-clipboard-list',
+            self::STATUS_RECEIVED => 'fas fa-box-open',
+            self::STATUS_OUTBOUND_TO_DROP_POINT => 'fas fa-truck',
+            self::STATUS_INBOUND_TO_DROP_POINT => 'fas fa-warehouse',
+            self::STATUS_READY_TO_COLLECT => 'fas fa-hand-holding-box',
+            self::STATUS_DELIVERED => 'fas fa-check-circle',
+            self::STATUS_RETURN => 'fas fa-undo'
+        ];
+
+        return $icons[$this->status] ?? 'fas fa-question';
+    }
+
+    /**
      * Get status badge HTML.
      */
     public function getStatusBadgeAttribute(): string
     {
-        return ParcelService::getStatusBadge($this->status);
+        return $this->generateStatusBadge();
     }
 
     /**
@@ -204,7 +261,33 @@ class Parcel extends Model
      */
     public function getStatusBadgeWithIconAttribute(): string
     {
-        return ParcelService::getStatusBadgeWithIcon($this->status);
+        return $this->generateStatusBadge(true);
+    }
+
+    /**
+     * Generate status badge HTML.
+     */
+    private function generateStatusBadge(bool $withIcon = false, array $attributes = []): string
+    {
+        $defaultAttributes = [
+            'class' => 'px-2 inline-flex ' . ($withIcon ? 'items-center ' : '') . 'text-xs leading-5 font-semibold rounded-full ' . $this->status_color,
+            'title' => $this->status_text,
+            'data-status' => $this->status,
+            'data-status-text' => $this->status_text
+        ];
+
+        // Merge default attributes with custom attributes
+        $attributes = array_merge($defaultAttributes, $attributes);
+        
+        // Build HTML attributes string
+        $htmlAttributes = '';
+        foreach ($attributes as $key => $value) {
+            $htmlAttributes .= ' ' . $key . '="' . htmlspecialchars($value) . '"';
+        }
+
+        $content = $withIcon ? '<i class="' . $this->status_icon . ' mr-1"></i>' . $this->status_text : $this->status_text;
+        
+        return '<span' . $htmlAttributes . '>' . $content . '</span>';
     }
 
     /**
@@ -212,7 +295,7 @@ class Parcel extends Model
      */
     public function getStatusBadgeWithAttributes(array $attributes = []): string
     {
-        return ParcelService::getStatusBadge($this->status, $attributes);
+        return $this->generateStatusBadge(false, $attributes);
     }
 
     /**
@@ -220,7 +303,7 @@ class Parcel extends Model
      */
     public function getStatusBadgeWithIconAndAttributes(array $attributes = []): string
     {
-        return ParcelService::getStatusBadgeWithIcon($this->status, $attributes);
+        return $this->generateStatusBadge(true, $attributes);
     }
 
     /**

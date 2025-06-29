@@ -21,7 +21,20 @@ class CustomerController extends Controller
         $stats = $this->parcelService->getUserParcelStats($user);
         $recentParcels = $this->parcelService->getRecentParcels($user);
 
-        return view('customer.dashboard', compact('stats', 'recentParcels'));
+        // Extract stats for dashboard cards
+        $totalParcels = $stats['total'] ?? 0;
+        $deliveredParcels = $stats['delivered'] ?? 0;
+        $inTransitParcels = $stats['in_transit'] ?? 0;
+        $readyToCollectParcels = $stats['ready_to_collect'] ?? 0;
+
+        return view('customer.dashboard', compact(
+            'stats',
+            'recentParcels',
+            'totalParcels',
+            'deliveredParcels',
+            'inTransitParcels',
+            'readyToCollectParcels'
+        ));
     }
 
     /**
